@@ -24,7 +24,7 @@ impl<'a> Collection<'a> {
     /// ```rust,ignore
     /// use std::error::Error;
     /// 
-    /// use pocketbase_rs::{AuthenticationError, PocketBaseAdminBuilder};
+    /// use pocketbase_rs::PocketBase;
     /// use serde::Deserialize;
     ///
     /// #[derive(Default, Deserialize, Clone)]
@@ -35,20 +35,17 @@ impl<'a> Collection<'a> {
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
-    ///     let mut pb = PocketBaseAdminBuilder::new("http://localhost:8090")
-    ///         .auth_with_password("test@domain.com", "secure-password")
-    ///         .await?;
+    ///     let mut pb = PocketBase::new("http://localhost:8090");
     ///
-    ///     let request = pb
+    ///     // ...
+    ///
+    ///     let article = pb
     ///         .collection("articles")
     ///         .get_one::<Article>("record_id_123")
     ///         .call()
-    ///         .await;
-    ///
-    ///     match request {
-    ///         Ok(article) => println!("Article Title: {}", article.title),
-    ///         Err(error) => eprintln!("Error: {error:?}"),
-    ///     }
+    ///         .await?;
+    /// 
+    ///     println!("Article: {article:?}");
     ///
     ///     Ok(())
     /// }

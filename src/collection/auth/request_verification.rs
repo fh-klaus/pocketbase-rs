@@ -27,27 +27,23 @@ impl<'a> Collection<'a> {
     /// ```rust,ignore
     /// use std::error::Error;
     /// 
-    /// use pocketbase_rs::{AuthenticationError, PocketBaseAdminBuilder};
+    /// use pocketbase_rs::PocketBase;
     /// use serde::{Deserialize, Serialize};
     /// 
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
-    ///     let pb = PocketBaseAdminBuilder::new("http://localhost:8081")
-    ///         .auth_with_password("admin@domain.com", "secure-password")
-    ///         .await?;
+    ///     let mut pb = PocketBase::new("http://localhost:8090");
+    /// 
+    ///     // ...
     ///
     ///     let refreshed_auth = pb
     ///         .collection("users")
     ///         .request_verification("user@domain.com")
-    ///         .await;
+    ///         .await?;
     ///
-    ///     match refreshed_auth {
-    ///         Ok(_) => println!("The verification request was sent successfully."),
-    ///         Err(error) => eprintln!("Failed to send verification request: {}", error),
-    ///     }
+    ///     println!("The verification request was sent successfully.");
     ///
     ///     Ok(())
-    /// }
     /// }
     /// ```
     pub async fn request_verification(&self, email: &'a str) -> Result<(), RequestError> {

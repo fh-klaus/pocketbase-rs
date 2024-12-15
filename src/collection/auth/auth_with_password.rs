@@ -31,10 +31,10 @@ impl<'a> Collection<'a> {
     /// ```rust,ignore
     /// use std::{error::Error, fs};
     ///
-    /// use pocketbase_rs::{PocketBase, Collection, AuthenticationError};
+    /// use pocketbase_rs::PocketBase;
     ///
     /// #[tokio::main]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), Box<dyn Error>> {
     ///     let mut pb = PocketBase::new("http://localhost:8090");
     ///
     ///     let auth_data = pb.collection("users")
