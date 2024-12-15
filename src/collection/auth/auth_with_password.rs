@@ -1,10 +1,68 @@
 use serde_json::Value;
+use thiserror::Error;
 
 use crate::{
     collection::Collection,
     pocketbase::{AuthStore, AuthStoreModel},
-    AuthClientResponseData, AuthenticationError, Credentials, ErrorResponse,
+    AuthClientResponseData, Credentials, ErrorResponse,
 };
+
+/// Represents errors that can occur during the authentication process with the `PocketBase` API.
+///
+/// This enum defines various error types that may arise when attempting to authenticate,
+/// each providing details about the specific issue encountered.
+#[derive(Error, Debug)]
+pub enum AuthenticationError {
+    /// Communication with the `PocketBase` API was successful,
+    /// but returned a [400 Bad Request]("https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400") HTTP error response.
+    ///
+    /// Tip: The credentials you provided may be incorrect.
+    #[error("Authentication failed: Invalid Credentials. Given email and/or password is wrong.")]
+    InvalidCredentials,
+    /// Email and/or Password cannot be empty.
+    ///
+    /// This variant indicates that certain fields in the authentication request need to be validated.
+    /// The fields are represented as booleans:
+    ///
+    /// - `identity`: is blank and shouldn't be.
+    /// - `password`: is blank and shouldn't be.
+    #[error(
+        "Authentication failed: Empty Credential Field. Given email and/or password is empty."
+    )]
+    EmptyField {
+        /// Is identity blank.
+        identity: bool,
+        /// Is password blank.
+        password: bool,
+    },
+    /// The provided identity must be an email address.
+    ///
+    /// This variant indicates that the authentication request failed because the provided identity
+    /// does not conform to the expected email format. The `PocketBase` API requires the identity to
+    /// be a valid email address for authentication.
+    #[error("Authentication failed. Given identity is not a valid email.")]
+    IdentityMustBeEmail,
+    /// An HTTP error occurred while communicating with the `PocketBase` API.
+    ///
+    /// This variant wraps a [`reqwest::Error`] and indicates that the request could not be completed
+    /// due to network issues, invalid URL, timeouts, etc.
+    #[error("Authentication failed. Couldn't reach the PocketBase API: {0}")]
+    HttpError(reqwest::Error),
+    /// When something unexpected was returned by the `PocketBase` REST API.
+    ///
+    /// Would usually mean that there is an error somewhere in this API wrapper.
+    #[error("Authentication failed due to an unexpected response. Usually means a problem in the PocketBase API's wrapper.")]
+    UnexpectedResponse,
+    /// Occurs when you try to authenticate a `PocketBase` client without providing the collection name.
+    #[error("Authentication failed due to missing collection name. [Example: PocketBaseClientBuilder::new(\"\")")]
+    MissingCollection,
+}
+
+impl From<reqwest::Error> for AuthenticationError {
+    fn from(error: reqwest::Error) -> Self {
+        Self::HttpError(error)
+    }
+}
 
 impl<'a> Collection<'a> {
     /// Authenticates a Client user with the `PocketBase` server using their email and password.

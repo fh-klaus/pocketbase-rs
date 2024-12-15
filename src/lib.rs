@@ -37,7 +37,7 @@
 //!  }
 //!  ```
 
-pub use error::{AuthenticationError, BadRequestError, RequestError};
+pub use error::{BadRequestError, RequestError};
 pub use pocketbase::PocketBase;
 pub use reqwest::multipart::{Form, Part};
 use serde::{Deserialize, Serialize};

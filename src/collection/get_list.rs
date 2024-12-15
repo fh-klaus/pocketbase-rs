@@ -54,11 +54,11 @@ impl<'a> Collection<'a> {
     ///         .sort("-created,id")
     ///         .call()
     ///         .await?;
-    /// 
+    ///
     ///     for article in articles.items {
     ///         println!("{article:?}");
     ///     }
-    /// 
+    ///
     ///     Ok(())
     /// }
     /// ```

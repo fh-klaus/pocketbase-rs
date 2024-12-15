@@ -1,11 +1,25 @@
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{
-    error::{BadRequestError, BadRequestResponse, CreateError},
+    error::{BadRequestError, BadRequestResponse},
     RequestError,
 };
 
 use super::Collection;
+
+#[derive(Error, Debug)]
+pub enum CreateError {
+    /// Represents generic errors that can occurs when interacting with the `PocketBase` API.
+    #[error("Generic Error received when attempting record creation: {0}")]
+    RequestError(RequestError),
+    /// Bad Request. One or more fields couldn't be validated by `PocketBase`..
+    #[error("Bad Request. One or more fields couldn't be validated by PocketBase: {0:?}")]
+    BadRequest(Vec<BadRequestError>),
+    /// An unexpected error occurred.
+    #[error("Unhandled error. If you think it should be, please open an issue on Github. : {0}")]
+    Unhandled(String),
+}
 
 #[derive(Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -26,7 +40,7 @@ impl Collection<'_> {
     ///
     /// ```rust,ignore
     /// use std::error::Error;
-    /// 
+    ///
     /// use pocketbase_rs::PocketBase;
     /// use serde::{Deserialize, Serialize};
     ///
@@ -39,7 +53,7 @@ impl Collection<'_> {
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
     ///     let mut pb = PocketBase::new("http://localhost:8090");
-    /// 
+    ///
     ///     // ...
     ///
     ///     let article = pb

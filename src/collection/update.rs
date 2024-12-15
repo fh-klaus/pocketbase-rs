@@ -1,12 +1,42 @@
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-use crate::{
-    error::{BadRequestResponse, UpdateError},
-    pocketbase::PocketBase,
-    BadRequestError,
-};
+use crate::{error::BadRequestResponse, pocketbase::PocketBase, BadRequestError, RequestError};
 
 use super::Collection;
+
+#[derive(Error, Debug)]
+pub enum UpdateError {
+    /// Represents generic errors that can occurs when interacting with the `PocketBase` API.
+    #[error("Generic Error received when attempting record creation: {0}")]
+    RequestError(RequestError),
+    /// Bad Request. One or more fields couldn't be validated by `PocketBase`..
+    #[error("Bad Request. One or more fields couldn't be validated by PocketBase: {0:?}")]
+    BadRequest(Vec<BadRequestError>),
+    /// Communication with the `PocketBase` API was successful,
+    /// but returned a [403 Forbidden]("https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403") HTTP error response.
+    ///
+    /// The authenticated user may not have permissions for this interaction.
+    #[error("Forbidden: The authenticated user may not have permissions for this interaction.")]
+    Forbidden,
+    /// Communication with the `PocketBase` API was successful,
+    /// but returned a [404 Not Found]("https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404") HTTP error response.
+    #[error("Not Found: The requested resource could not be found.")]
+    NotFound,
+    /// The `PocketBase` API interaction timed out. It may be offline.
+    #[error(
+        "Unreachable: The PocketBase API interaction timed out, or the service may be offline."
+    )]
+    Unreachable,
+    /// The response could not be parsed into the expected data structure.
+    #[error("Parse Error: Could not parse response into the expected data structure. It usually means that there is a missmatch between the provided Generic Type Parameter and your Collection definition. - {0}")]
+    ParseError(String),
+    /// Unhandled error.
+    ///
+    /// Usually emitted when something unexpected happened, and isn't handled correctly by this crate.
+    #[error("Unhandled Error: An unexpected error occurred: {0}")]
+    Unhandled(String),
+}
 
 pub struct CollectionUpdateBuilder<'a, T: Send + Serialize + Deserialize<'a>> {
     client: &'a PocketBase,
