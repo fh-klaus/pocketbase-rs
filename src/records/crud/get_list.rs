@@ -4,9 +4,8 @@
 
 use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::{pocketbase::PocketBase, RequestError};
-
-use super::{Collection, RecordList};
+use crate::PocketBase;
+use crate::{Collection, RecordList, RequestError};
 
 pub struct CollectionGetListBuilder<'a, T: Send + Deserialize<'a>> {
     client: &'a PocketBase,
@@ -62,6 +61,7 @@ impl<'a> Collection<'a> {
     ///     Ok(())
     /// }
     /// ```
+    #[must_use]
     pub fn get_list<T: Default + DeserializeOwned + Clone + Send>(
         self,
     ) -> CollectionGetListBuilder<'a, T> {

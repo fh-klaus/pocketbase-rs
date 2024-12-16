@@ -2,7 +2,7 @@ use serde::Serialize;
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::{collection::Collection, pocketbase::AuthStore, ErrorResponse};
+use crate::{AuthStore, Collection, ErrorResponse};
 
 #[derive(Clone, Default, Serialize)]
 struct Credentials<'a> {

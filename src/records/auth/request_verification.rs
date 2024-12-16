@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{collection::Collection, RequestError};
+use crate::{Collection, RequestError};
 
 impl<'a> Collection<'a> {
     /// Request verification.
@@ -23,17 +23,17 @@ impl<'a> Collection<'a> {
     /// - `RequestError::Unhandled` for all other error cases.
     ///
     /// # Example
-    /// 
+    ///
     /// ```rust,ignore
     /// use std::error::Error;
-    /// 
+    ///
     /// use pocketbase_rs::PocketBase;
     /// use serde::{Deserialize, Serialize};
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
     ///     let mut pb = PocketBase::new("http://localhost:8090");
-    /// 
+    ///
     ///     // ...
     ///
     ///     let refreshed_auth = pb
