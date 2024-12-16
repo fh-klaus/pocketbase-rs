@@ -1,8 +1,7 @@
 use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::{error::RequestError, pocketbase::PocketBase};
-
-use super::Collection;
+use crate::error::RequestError;
+use crate::{Collection, PocketBase};
 
 pub struct CollectionGetOneBuilder<'a, T: Send + Deserialize<'a>> {
     client: &'a PocketBase,
@@ -50,6 +49,7 @@ impl<'a> Collection<'a> {
     ///     Ok(())
     /// }
     /// ```
+    #[must_use]
     pub const fn get_one<T: Default + DeserializeOwned + Clone + Send>(
         self,
         record_id: &'a str,

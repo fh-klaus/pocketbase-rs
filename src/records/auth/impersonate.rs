@@ -1,10 +1,8 @@
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{
-    collection::Collection,
-    pocketbase::{AuthStore, PocketBase},
-};
+use super::AuthStore;
+use crate::{Collection, PocketBase};
 
 #[derive(Error, Debug)]
 pub enum ImpersonateError {
@@ -121,6 +119,7 @@ impl<'a> Collection<'a> {
     ///     Ok(())
     /// }
     /// ```
+    #[must_use]
     pub fn impersonate(self, user_id: &'a str) -> CollectionImpersonateBuilder<'a> {
         CollectionImpersonateBuilder {
             client: self.client,

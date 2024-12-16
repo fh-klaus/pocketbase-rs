@@ -1,6 +1,4 @@
-use crate::{pocketbase::AuthStore, RequestError};
-
-use crate::collection::Collection;
+use crate::{AuthStore, Collection, RequestError};
 
 impl Collection<'_> {
     /// Returns a new auth response (token and record data) for an **already authenticated record**.

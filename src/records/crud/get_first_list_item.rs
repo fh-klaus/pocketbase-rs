@@ -2,9 +2,8 @@
 
 use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::{pocketbase::PocketBase, RequestError};
-
-use super::{Collection, RecordList};
+use crate::PocketBase;
+use crate::{Collection, RecordList, RequestError};
 
 pub struct CollectionGetFirstListItemBuilder<'a, T: Send + Deserialize<'a>> {
     client: &'a PocketBase,
@@ -44,7 +43,7 @@ impl<'a> Collection<'a> {
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
     ///     let mut pb = PocketBase::new("http://localhost:8090");
-    /// 
+    ///
     ///     // ...
     ///
     ///     let article = pb
@@ -53,12 +52,13 @@ impl<'a> Collection<'a> {
     ///         .filter("language='en'")
     ///         .call()
     ///         .await?;
-    /// 
+    ///
     ///     println!("Article: {article:?}");
     ///
     ///     Ok(())
     /// }
     /// ```
+    #[must_use]
     pub fn get_first_list_item<T: Default + DeserializeOwned + Clone + Send>(
         self,
     ) -> CollectionGetFirstListItemBuilder<'a, T> {
