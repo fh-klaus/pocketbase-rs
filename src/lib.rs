@@ -40,6 +40,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(dead_code)]
 
+pub use error::*;
 pub use records::auth::{AuthStore, AuthStoreRecord};
 pub use reqwest::multipart::{Form, Part};
 use reqwest::RequestBuilder;
