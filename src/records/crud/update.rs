@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::error::BadRequestResponse;
-use crate::{BadRequestError, Collection, PocketBase};
+use crate::error::{BadRequestError, BadRequestResponse};
+use crate::{Collection, PocketBase};
 
+/// Represents the various errors that can be obtained after a `update` request.
 #[derive(Error, Debug)]
 pub enum UpdateError {
     /// Communication with the `PocketBase` API was successful,

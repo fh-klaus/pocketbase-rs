@@ -1,10 +1,10 @@
-use reqwest::Response;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::error::{BadRequestError, BadRequestResponse};
-use crate::{Collection, RequestError};
+use crate::Collection;
 
+/// Represents the various errors that can be obtained after a `create` request.
 #[derive(Error, Debug)]
 pub enum CreateError {
     /// Communication with the `PocketBase` API was successful,

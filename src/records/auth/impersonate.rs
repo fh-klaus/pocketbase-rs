@@ -4,6 +4,7 @@ use thiserror::Error;
 use super::AuthStore;
 use crate::{Collection, PocketBase};
 
+/// Represents the various errors that can be obtained after a `impersonate` request.
 #[derive(Error, Debug)]
 pub enum ImpersonateError {
     /// Communication with the `PocketBase` API was successful,

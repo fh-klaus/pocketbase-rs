@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::{Collection, RequestError};
+use crate::error::RequestError;
+use crate::Collection;
 
 impl<'a> Collection<'a> {
     /// Request verification.
