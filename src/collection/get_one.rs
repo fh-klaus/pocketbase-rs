@@ -23,7 +23,7 @@ impl<'a> Collection<'a> {
     ///
     /// ```rust,ignore
     /// use std::error::Error;
-    /// 
+    ///
     /// use pocketbase_rs::PocketBase;
     /// use serde::Deserialize;
     ///
@@ -44,7 +44,7 @@ impl<'a> Collection<'a> {
     ///         .get_one::<Article>("record_id_123")
     ///         .call()
     ///         .await?;
-    /// 
+    ///
     ///     println!("Article: {article:?}");
     ///
     ///     Ok(())
@@ -85,41 +85,6 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetOneBuilder<'
     /// This method finalizes the request built using the builder pattern
     /// and sends it to the API endpoint. It should be called after all
     /// desired parameters and configurations have been set on the builder.
-    ///
-    /// # Example
-    ///
-    /// ```rust,ignore
-    /// use std::error::Error;
-    /// 
-    /// use pocketbase_rs::{AuthenticationError, PocketBaseAdminBuilder};
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Default, Deserialize, Clone)]
-    /// struct Article {
-    ///     title: String,
-    ///     content: String,
-    /// }
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn Error>> {
-    ///     let mut pb = PocketBaseAdminBuilder::new("http://localhost:8090");
-    ///         .auth_with_password("test@domain.com", "secure-password")
-    ///         .await?;
-    ///
-    ///     let request = pb
-    ///         .collection("articles")
-    ///         .get_one::<Article>("record_id_123")
-    ///         .call()
-    ///         .await;
-    ///
-    ///     match(request) {
-    ///         Ok(article) => println!("Article Title: {}", article.title);
-    ///         Err(error) => eprintln!("Error: {}", error);
-    ///     }
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
     pub async fn call(self) -> Result<T, RequestError> {
         let url = format!(
             "{}/api/collections/{}/records/{}",
