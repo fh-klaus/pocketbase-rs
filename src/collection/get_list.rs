@@ -90,7 +90,7 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
     ///
     /// If a value greater than **500** is provided, `PocketBase` will
     /// automatically limit it to **500**.
-    pub fn per_page(mut self, per_page: &'a usize) -> Self {
+    pub fn per_page(mut self, per_page: &'a u16) -> Self {
         self.per_page = Some(per_page.to_string());
         self
     }
@@ -169,47 +169,6 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
     /// This method finalizes the request built using the builder pattern
     /// and sends it to the API endpoint. It should be called after all
     /// desired parameters and configurations have been set on the builder.
-    ///
-    /// # Example
-    ///
-    /// ```rust,ignore
-    /// use std::error::Error;
-    ///
-    /// use pocketbase_rs::{AuthenticationError, PocketBaseAdminBuilder};
-    /// use serde::Deserialize;
-    ///
-    /// #[derive(Default, Deserialize, Clone)]
-    /// struct Article {
-    ///     id: String,
-    ///     title: String,
-    ///     content: String,
-    /// }
-    ///
-    /// #[tokio::main]
-    /// async fn main() -> Result<(), Box<dyn Error>> {
-    ///     let mut pb = PocketBaseAdminBuilder::new("http://localhost:8090")
-    ///         .auth_with_password("test@domain.com", "secure-password")
-    ///         .await?;
-    ///
-    ///     let request = pb
-    ///         .collection("articles")
-    ///         .get_list::<Article>()
-    ///         .sort("-created,id")
-    ///         .call()
-    ///         .await;
-    ///
-    ///     match request {
-    ///         Ok(articles) => {
-    ///             for article in articles.items {
-    ///                 println!("{article:?}");
-    ///             }
-    ///         }
-    ///         Err(error) => eprintln!("Error: {error:?}"),
-    ///        }
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
     pub async fn call(self) -> Result<RecordList<T>, RequestError> {
         let url = format!(
             "{}/api/collections/{}/records",

@@ -1,5 +1,5 @@
 use reqwest::{multipart::Form, RequestBuilder};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A `PocketBase` Client. You can use it to send requests to the `PocketBase` instance.
 ///
@@ -34,18 +34,23 @@ pub struct PocketBase {
     pub(crate) reqwest_client: reqwest::Client,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct AuthStore {
+    pub record: AuthStoreRecord,
     pub token: String,
-    pub model: AuthStoreModel,
 }
 
-#[derive(Clone, Debug)]
-pub struct AuthStoreModel {
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuthStoreRecord {
     pub id: String,
+    collection_id: String,
+    collection_name: String,
     pub created: String,
     pub updated: String,
-    pub email: String,
+    email: String,
+    email_visibility: bool,
+    verified: bool,
 }
 
 impl PocketBase {
@@ -74,6 +79,63 @@ impl PocketBase {
         }
     }
 
+    /// Retrieves the current auth store, if available.
+    ///
+    /// If the `PocketBase` client has an active authentication session, this method
+    /// returns the authentication data stored in the client. Otherwise, it returns `None`.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<AuthStore>` containing the authentication token if authenticated, or `None` if
+    /// the client is not authenticated.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let client = PocketBase::new("http://localhost:8090");
+    ///
+    /// // ...
+    ///
+    /// if let Some(auth_store) = client.auth_store() {
+    ///     println!("Authenticated with token: {}", auth_store.token);
+    /// } else {
+    ///     println!("Not authenticated");
+    /// }
+    /// ```
+    #[must_use]
+    pub fn auth_store(&self) -> Option<AuthStore> {
+        self.auth_store.clone()
+    }
+
+    /// Retrieves the current authentication token, if available.
+    ///
+    /// If the `PocketBase` client has an active authentication session, this method
+    /// returns the authentication token stored in the `auth_store`. Otherwise, it returns `None`.
+    ///
+    /// # Returns
+    /// An `Option<String>` containing the authentication token if authenticated, or `None` if
+    /// the client is not authenticated.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let pb = PocketBase::new("http://localhost:8090");
+    ///
+    /// // ...
+    ///
+    /// if let Some(token) = pb.token() {
+    ///     println!("Authenticated with token: {}", token);
+    /// } else {
+    ///     println!("Not authenticated");
+    /// }
+    /// ```
+    #[must_use]
+    pub fn token(&self) -> Option<String> {
+        self.auth_store
+            .as_ref()
+            .map(|auth_store| auth_store.token.clone())
+    }
+
     /// Returns the base URL of the `PocketBase` server.
     ///
     /// This method retrieves the base URL that was set when the `PocketBase` client
@@ -91,34 +153,6 @@ impl PocketBase {
     #[must_use]
     pub fn base_url(&self) -> String {
         self.base_url.clone()
-    }
-
-    /// Retrieves the current authentication token, if available.
-    ///
-    /// If the `PocketBase` client has an active authentication session, this method
-    /// returns the authentication token stored in the `auth_store`. Otherwise, it returns `None`.
-    ///
-    /// # Returns
-    /// An `Option<String>` containing the authentication token if authenticated, or `None` if
-    /// the client is not authenticated.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let client = PocketBase::new("http://localhost:8090");
-    /// // Authenticate and retrieve token
-    /// client.authenticate("email", "password");
-    /// if let Some(token) = client.token() {
-    ///     println!("Authenticated with token: {}", token);
-    /// } else {
-    ///     println!("Not authenticated");
-    /// }
-    /// ```
-    #[must_use]
-    pub fn token(&self) -> Option<String> {
-        self.auth_store
-            .as_ref()
-            .map(|auth_store| auth_store.token.clone())
     }
 
     pub(crate) fn update_auth_store(&mut self, new_auth_store: AuthStore) {
@@ -142,8 +176,8 @@ impl PocketBase {
         &self,
         request_builder: reqwest::RequestBuilder,
     ) -> reqwest::RequestBuilder {
-        if let Some(token) = self.token() {
-            request_builder.bearer_auth(token)
+        if let Some(auth_store) = self.auth_store() {
+            request_builder.bearer_auth(auth_store.token)
         } else {
             request_builder
         }

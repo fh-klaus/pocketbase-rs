@@ -1,11 +1,14 @@
+use serde::Serialize;
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::{
-    collection::Collection,
-    pocketbase::{AuthStore, AuthStoreModel},
-    AuthClientResponseData, Credentials, ErrorResponse,
-};
+use crate::{collection::Collection, pocketbase::AuthStore, ErrorResponse};
+
+#[derive(Clone, Default, Serialize)]
+struct Credentials<'a> {
+    pub(crate) identity: &'a str,
+    pub(crate) password: &'a str,
+}
 
 /// Represents errors that can occur during the authentication process with the `PocketBase` API.
 ///
@@ -121,17 +124,7 @@ impl<'a> Collection<'a> {
             .await?;
 
         if response.status().is_success() {
-            let json = response.json::<AuthClientResponseData>().await?;
-
-            let auth_store = AuthStore {
-                token: json.token,
-                model: AuthStoreModel {
-                    id: json.record.id,
-                    created: json.record.created,
-                    updated: json.record.updated,
-                    email: json.record.email,
-                },
-            };
+            let auth_store = response.json::<AuthStore>().await?;
 
             self.client.update_auth_store(auth_store.clone());
 

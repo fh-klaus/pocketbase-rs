@@ -1,7 +1,4 @@
-use crate::{
-    pocketbase::{AuthStore, AuthStoreModel},
-    AuthClientResponseData, RequestError,
-};
+use crate::{pocketbase::AuthStore, RequestError};
 
 use crate::collection::Collection;
 
@@ -62,22 +59,8 @@ impl Collection<'_> {
         match request {
             Ok(response) => {
                 if response.status().is_success() {
-                    let auth_store = {
-                        let json: AuthClientResponseData = response.json().await.map_err(|_| {
-                            RequestError::ParseError(
-                                "Couldn't parse auth refresh response.".to_string(),
-                            )
-                        })?;
-
-                        AuthStore {
-                            token: json.token,
-                            model: AuthStoreModel {
-                                id: json.record.id,
-                                created: json.record.created,
-                                updated: json.record.updated,
-                                email: json.record.email,
-                            },
-                        }
+                    let Ok(auth_store) = response.json::<AuthStore>().await else {
+                        return Err(RequestError::Unhandled);
                     };
 
                     self.client.update_auth_store(auth_store.clone());
