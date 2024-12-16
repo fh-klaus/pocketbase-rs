@@ -1,4 +1,5 @@
-use crate::{AuthStore, Collection, RequestError};
+use crate::error::RequestError;
+use crate::{AuthStore, Collection};
 
 impl Collection<'_> {
     /// Returns a new auth response (token and record data) for an **already authenticated record**.

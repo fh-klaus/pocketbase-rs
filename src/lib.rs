@@ -40,13 +40,12 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(dead_code)]
 
-pub use error::{BadRequestError, RequestError};
 pub use records::auth::{AuthStore, AuthStoreRecord};
 pub use reqwest::multipart::{Form, Part};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 
-pub(crate) mod error;
+pub mod error;
 pub(crate) mod records;
 
 /// Represents a specific collection in a `PocketBase` database.

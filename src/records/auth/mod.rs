@@ -1,9 +1,9 @@
 use serde::Deserialize;
 
-mod auth_refresh;
-mod auth_with_password;
-mod impersonate;
-mod request_verification;
+pub(crate) mod auth_refresh;
+pub(crate) mod auth_with_password;
+pub(crate) mod impersonate;
+pub(crate) mod request_verification;
 
 /// Stores authentication details for a `PocketBase` user.
 ///

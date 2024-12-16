@@ -4,11 +4,21 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use thiserror::Error;
 
+pub use crate::records::auth::auth_with_password::AuthenticationError;
+pub use crate::records::auth::impersonate::ImpersonateError;
+pub use crate::records::crud::create::CreateError;
+pub use crate::records::crud::update::UpdateError;
+
+/// This error represents the error returned by the `PocketBase`
+/// instance in case of a 400 error.
 #[derive(Deserialize, Debug)]
 pub struct BadRequestResponse {
-    pub code: u16,
+    /// HTTP Status Code.
+    pub status: u16,
+    /// Description from given by `PocketBase` about why the error happened.
     pub message: String,
-    pub data: HashMap<String, BadRequestInternalError>,
+    /// A list of fields that caused the error.
+    pub data: HashMap<String, BadRequestField>,
 }
 
 /// Represents an instance of one of the errors that could be returned on a bad request.
@@ -31,9 +41,12 @@ impl fmt::Display for BadRequestError {
     }
 }
 
+/// Represents one of the fields that caused the Bad Request error.
 #[derive(Deserialize, Debug)]
-pub struct BadRequestInternalError {
+pub struct BadRequestField {
+    /// Error code *(example: `validation_required`)*.
     pub code: String,
+    /// A text explaining in a readable way what this error is.
     pub message: String,
 }
 

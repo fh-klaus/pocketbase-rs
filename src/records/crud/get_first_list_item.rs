@@ -2,8 +2,9 @@
 
 use serde::{de::DeserializeOwned, Deserialize};
 
+use crate::error::RequestError;
 use crate::PocketBase;
-use crate::{Collection, RecordList, RequestError};
+use crate::{Collection, RecordList};
 
 pub struct CollectionGetFirstListItemBuilder<'a, T: Send + Deserialize<'a>> {
     client: &'a PocketBase,
