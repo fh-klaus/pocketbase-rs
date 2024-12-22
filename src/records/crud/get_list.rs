@@ -91,7 +91,7 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
     ///
     /// If a value greater than **500** is provided, `PocketBase` will
     /// automatically limit it to **500**.
-    pub fn per_page(mut self, per_page: &'a u16) -> Self {
+    pub fn per_page(mut self, per_page: u16) -> Self {
         self.per_page = Some(per_page.to_string());
         self
     }
