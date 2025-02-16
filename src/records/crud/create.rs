@@ -32,7 +32,7 @@ pub enum CreateError {
     #[error("The communication with the PocketBase API failed: {0}")]
     Unreachable(String),
     /// The response could not be parsed into the expected data structure.
-    #[error("Could not parse response into the expected data structure. It usually means that there is a missmatch between the provided Generic Type Parameter and your Collection definition: {0}")]
+    #[error("Could not parse response into the expected data structure. It usually means that there is a mismatch between the provided Generic Type Parameter and your Collection definition: {0}")]
     ParseError(String),
     /// An unexpected error occurred.
     /// The response from the `PocketBase` instance API was unexpected.   
@@ -55,6 +55,8 @@ impl Collection<'_> {
     /// Create a new record in the given collection, from the given struct.
     ///
     /// If you need to upload files, you may want [`Collection::create_multipart()`].
+    /// 
+    /// The `record` parameter must implement the `Serialize` trait.
     ///
     /// # Example
     ///
@@ -87,15 +89,23 @@ impl Collection<'_> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// - The request to the server fails (`CreateError::Unreachable`).
+    /// - The server responds with a bad request status (`CreateError::BadRequest`).
+    /// - The server responds with a forbidden status (`CreateError::Forbidden`).
+    /// - The record is not found (`CreateError::NotFound`).
+    /// - The server responds with an unexpected status (`CreateError::UnexpectedResponse`).
+    /// - The response could not be parsed into the expected data structure (`CreateError::ParseError`).
     pub async fn create<T: Default + Serialize + Clone + Send>(
         self,
         record: T,
     ) -> Result<CreateResponse, CreateError> {
-        let collection_name = self.name;
-
         let endpoint = format!(
             "{}/api/collections/{}/records",
-            self.client.base_url, collection_name
+            self.client.base_url, self.name
         );
 
         let request = self
@@ -154,6 +164,16 @@ impl Collection<'_> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// - The request to the server fails (`CreateError::Unreachable`).
+    /// - The server responds with a bad request status (`CreateError::BadRequest`).
+    /// - The server responds with a forbidden status (`CreateError::Forbidden`).
+    /// - The record is not found (`CreateError::NotFound`).
+    /// - The server responds with an unexpected status (`CreateError::UnexpectedResponse`).
+    /// - The response could not be parsed into the expected data structure (`CreateError::ParseError`).
     pub async fn create_multipart(
         self,
         form: reqwest::multipart::Form,
@@ -180,8 +200,8 @@ async fn create_processing(
                 let data = response.json::<CreateResponse>().await;
 
                 match data {
-                    Ok(data) => return Ok(data),
-                    Err(error) => return Err(CreateError::ParseError(error.to_string())),
+                    Ok(data) => Ok(data),
+                    Err(error) => Err(CreateError::ParseError(error.to_string())),
                 }
             }
 
@@ -200,22 +220,20 @@ async fn create_processing(
                             });
                         }
 
-                        return Err(CreateError::BadRequest(errors));
+                        Err(CreateError::BadRequest(errors))
                     }
-                    Err(error) => return Err(CreateError::ParseError(error.to_string())),
+                    Err(error) => Err(CreateError::ParseError(error.to_string())),
                 }
             }
 
-            reqwest::StatusCode::FORBIDDEN => return Err(CreateError::Forbidden),
-            reqwest::StatusCode::NOT_FOUND => return Err(CreateError::NotFound),
+            reqwest::StatusCode::FORBIDDEN => Err(CreateError::Forbidden),
+            reqwest::StatusCode::NOT_FOUND => Err(CreateError::NotFound),
 
-            _ => {
-                return Err(CreateError::UnexpectedResponse(
-                    response.status().to_string(),
-                ))
-            }
+            _ => Err(CreateError::UnexpectedResponse(
+                response.status().to_string(),
+            )),
         },
 
-        Err(error) => return Err(CreateError::Unreachable(error.to_string())),
+        Err(error) => Err(CreateError::Unreachable(error.to_string())),
     }
 }

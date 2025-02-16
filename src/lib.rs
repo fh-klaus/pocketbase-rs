@@ -410,4 +410,28 @@ impl PocketBase {
 
         self.with_authorization_token(request_builder)
     }
+
+    /// Creates a DELETE request builder for the specified endpoint.
+    ///
+    /// This method initializes a `DELETE` request to the given endpoint and adds
+    /// an authorization token if available.
+    ///
+    /// # Arguments
+    /// * `endpoint` - The API endpoint to send the `DELETE` request to.
+    ///
+    /// # Returns
+    /// A `reqwest::RequestBuilder` for the `DELETE` request.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let client = PocketBase::new("http://localhost:8090");
+    ///
+    /// let request = client.request_delete("http://localhost:8090/api/collections/articles/record_id");
+    /// ```
+    pub(crate) fn request_delete(&self, endpoint: &str) -> RequestBuilder {
+        let request_builder = self.reqwest_client.delete(endpoint);
+
+        self.with_authorization_token(request_builder)
+    }
 }
