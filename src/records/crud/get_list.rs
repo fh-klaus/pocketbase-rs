@@ -63,7 +63,7 @@ impl<'a> Collection<'a> {
     /// }
     /// ```
     #[must_use]
-    pub fn get_list<T: Default + DeserializeOwned + Clone + Send>(
+    pub const fn get_list<T: Default + DeserializeOwned + Clone + Send>(
         self,
     ) -> CollectionGetListBuilder<'a, T> {
         CollectionGetListBuilder {

@@ -101,6 +101,16 @@ impl<'a> Collection<'a> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// - The request to the server fails (`UpdateError::Unreachable`).
+    /// - The server responds with a bad request status (`UpdateError::BadRequest`).
+    /// - The server responds with a forbidden status (`UpdateError::Forbidden`).
+    /// - The record is not found (`UpdateError::NotFound`).
+    /// - The server responds with an unexpected status (`UpdateError::UnexpectedResponse`).
+    /// - The response could not be parsed into the expected data structure (`UpdateError::ParseError`).
     pub async fn update<T: Default + Serialize + Clone + Send>(
         self,
         record_id: &'a str,

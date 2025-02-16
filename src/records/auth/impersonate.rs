@@ -121,7 +121,7 @@ impl<'a> Collection<'a> {
     /// }
     /// ```
     #[must_use]
-    pub fn impersonate(self, user_id: &'a str) -> CollectionImpersonateBuilder<'a> {
+    pub const fn impersonate(self, user_id: &'a str) -> CollectionImpersonateBuilder<'a> {
         CollectionImpersonateBuilder {
             client: self.client,
             collection_name: self.name,
@@ -131,7 +131,7 @@ impl<'a> Collection<'a> {
     }
 }
 
-impl<'a> CollectionImpersonateBuilder<'a> {
+impl CollectionImpersonateBuilder<'_> {
     /// Optional custom JWT duration for the `exp` claim (in seconds).
     ///
     /// If not set or 0, it fallbacks to the default collection auth token duration option.

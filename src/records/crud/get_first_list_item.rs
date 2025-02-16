@@ -60,7 +60,7 @@ impl<'a> Collection<'a> {
     /// }
     /// ```
     #[must_use]
-    pub fn get_first_list_item<T: Default + DeserializeOwned + Clone + Send>(
+    pub const fn get_first_list_item<T: Default + DeserializeOwned + Clone + Send>(
         self,
     ) -> CollectionGetFirstListItemBuilder<'a, T> {
         CollectionGetFirstListItemBuilder {

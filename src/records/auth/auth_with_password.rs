@@ -67,7 +67,7 @@ impl From<reqwest::Error> for AuthenticationError {
     }
 }
 
-impl<'a> Collection<'a> {
+impl Collection<'_> {
     /// Authenticates a Client user with the `PocketBase` server using their email and password.
     ///
     /// # Parameters
