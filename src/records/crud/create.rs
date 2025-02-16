@@ -103,11 +103,9 @@ impl Collection<'_> {
         self,
         record: T,
     ) -> Result<CreateResponse, CreateError> {
-        let collection_name = self.name;
-
         let endpoint = format!(
             "{}/api/collections/{}/records",
-            self.client.base_url, collection_name
+            self.client.base_url, self.name
         );
 
         let request = self
