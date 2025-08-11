@@ -37,6 +37,11 @@ impl<'a> Collection<'a> {
     /// * The request to the server fails (`DeleteError::Unreachable`).
     /// * The server responds with an unexpected status (`DeleteError::UnexpectedResponse`).
     pub async fn delete(&self, record_id: &'a str) -> Result<(), DeleteError> {
+        // Validate record_id
+        if record_id.is_empty() {
+            return Err(DeleteError::BadRequest);
+        }
+
         let endpoint = format!(
             "{}/api/collections/{}/records/{}",
             self.client.base_url, self.name, record_id
@@ -45,15 +50,28 @@ impl<'a> Collection<'a> {
 
         match request {
             Ok(response) => match response.status() {
-                reqwest::StatusCode::NO_CONTENT => Ok(()),
+                reqwest::StatusCode::NO_CONTENT | reqwest::StatusCode::OK => Ok(()),
                 reqwest::StatusCode::BAD_REQUEST => Err(DeleteError::BadRequest),
                 reqwest::StatusCode::FORBIDDEN => Err(DeleteError::Forbidden),
                 reqwest::StatusCode::NOT_FOUND => Err(DeleteError::NotFound),
-                _ => Err(DeleteError::UnexpectedResponse(
-                    response.status().to_string(),
-                )),
+                _ => Err(DeleteError::UnexpectedResponse(format!(
+                    "Status: {}, Collection: {}, Record: {}",
+                    response.status(),
+                    self.name,
+                    record_id
+                ))),
             },
-            Err(e) => Err(DeleteError::Unreachable(e.to_string())),
+            Err(e) => {
+                if e.is_timeout() {
+                    Err(DeleteError::Unreachable("Request timed out".to_string()))
+                } else if e.is_connect() {
+                    Err(DeleteError::Unreachable(
+                        "Failed to connect to server".to_string(),
+                    ))
+                } else {
+                    Err(DeleteError::Unreachable(e.to_string()))
+                }
+            }
         }
     }
 }
