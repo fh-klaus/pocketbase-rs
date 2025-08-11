@@ -88,6 +88,13 @@ pub enum RequestError {
         "Unreachable: The PocketBase API interaction timed out, or the service may be offline."
     )]
     Unreachable,
+    /// Too many requests were sent to the API.
+    ///
+    /// The server is rate limiting requests. Wait before retrying.
+    #[error(
+        "Too Many Requests: The server is rate limiting requests. Please wait before retrying."
+    )]
+    TooManyRequests,
     /// Unhandled error.
     ///
     /// Usually emitted when something unexpected happened, and isn't handled correctly by this crate.

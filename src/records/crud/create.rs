@@ -25,7 +25,7 @@ pub enum CreateError {
     /// The requested resource wasn't found. Missing collection context.
     #[error("The requested resource wasn't found. Missing collection context.")]
     NotFound,
-    /// Communication with the `PocketBase` API failed.   
+    /// Communication with the `PocketBase` API failed.
     ///
     /// This could be caused by an internet outage, an error in the link given to the `PocketBase` SDK
     /// and similar errors.
@@ -35,7 +35,7 @@ pub enum CreateError {
     #[error("Could not parse response into the expected data structure. It usually means that there is a mismatch between the provided Generic Type Parameter and your Collection definition: {0}")]
     ParseError(String),
     /// An unexpected error occurred.
-    /// The response from the `PocketBase` instance API was unexpected.   
+    /// The response from the `PocketBase` instance API was unexpected.
     /// If you think its an error, please [open an issue on GitHub]("https://github.com/fromhorizons/pocketbase-rs/issues").
     #[error("An unhandled status code was returned by the PocketBase API: {0}")]
     UnexpectedResponse(String),
@@ -55,7 +55,7 @@ impl Collection<'_> {
     /// Create a new record in the given collection, from the given struct.
     ///
     /// If you need to upload files, you may want [`Collection::create_multipart()`].
-    /// 
+    ///
     /// The `record` parameter must implement the `Serialize` trait.
     ///
     /// # Example

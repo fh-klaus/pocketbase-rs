@@ -33,13 +33,13 @@ pub enum ImpersonateError {
     /// The given user id is probably wrong.
     #[error("The requested resource wasn't found.")]
     NotFound,
-    /// Communication with the `PocketBase` API failed.   
+    /// Communication with the `PocketBase` API failed.
     ///
     /// This could be caused by an internet outage, an error in the link given to the `PocketBase` SDK
     /// and similar errors.
     #[error("The communication with the PocketBase API failed: {0}")]
     Unreachable(String),
-    /// The response from the `PocketBase` instance API was unexpected.   
+    /// The response from the `PocketBase` instance API was unexpected.
     /// If you think its an error, please [open an issue on GitHub]("https://github.com/fromhorizons/pocketbase-rs/issues").
     #[error("An unhandled status code was returned by the PocketBase API: {0}")]
     UnexpectedResponse(String),
@@ -72,8 +72,8 @@ pub struct CollectionImpersonateBuilder<'a> {
 }
 
 impl<'a> Collection<'a> {
-    /// Impersonate allows you to authenticate as a different user by generating a nonrefreshable auth token.   
-    /// Only superusers can perform this action.   
+    /// Impersonate allows you to authenticate as a different user by generating a nonrefreshable auth token.
+    /// Only superusers can perform this action.
     ///
     /// # Example
     ///

@@ -5,7 +5,7 @@
 //! ```rust,ignore
 //! use std::error::Error;
 //!
-//! use pocketbase_rs::{PocketBaseAdminBuilder, Collection, RequestError};
+//! use pocketbase_rs::{PocketBase, Collection, RequestError};
 //! use serde::Deserialize;
 //!
 //! #[derive(Default, Deserialize, Clone)]
@@ -19,6 +19,7 @@
 //!     let mut pb = PocketBase::new("http://localhost:8090");
 //!
 //!     let auth_data = pb
+//!         .collection("users")
 //!         .auth_with_password("test@domain.com", "secure-password")
 //!         .await?;
 //!
@@ -33,6 +34,28 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! # Security Considerations
+//!
+//! When using this library in production:
+//!
+//! - **Always use HTTPS** in production environments to prevent token interception
+//! - **Store credentials securely** - never hardcode passwords or tokens in your source code
+//! - **Validate all user input** before sending it to the `PocketBase` API
+//! - **Handle authentication tokens carefully** - the library automatically redacts tokens in Debug output
+//! - **Set appropriate timeouts** - the default timeout is 30 seconds, adjust based on your needs
+//! - **Be aware of rate limiting** - the library provides `RequestError::TooManyRequests` for rate limit errors
+//!
+//! # Error Handling
+//!
+//! The library provides comprehensive error types for different failure scenarios:
+//! - Network errors (timeouts, connection failures)
+//! - Authentication errors (invalid credentials, expired tokens)
+//! - Validation errors (bad requests with field-level details)
+//! - Authorization errors (forbidden access)
+//! - Rate limiting errors
+//!
+//! Always handle errors appropriately and avoid exposing sensitive error details to end users.
 
 #![deny(missing_docs)]
 #![warn(clippy::nursery)]
@@ -93,7 +116,25 @@ impl PocketBase {
     ///     .call()
     ///     .await;
     /// ```
-    pub const fn collection(&mut self, collection_name: &'static str) -> Collection {
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if the collection name is empty or contains invalid characters.
+    pub fn collection(&mut self, collection_name: &'static str) -> Collection {
+        // Validate collection name
+        assert!(
+            !collection_name.is_empty(),
+            "Collection name cannot be empty"
+        );
+
+        // Collection names should only contain alphanumeric characters and underscores
+        assert!(
+            collection_name
+                .chars()
+                .all(|c| c.is_alphanumeric() || c == '_'),
+            "Collection name contains invalid characters. Only alphanumeric characters and underscores are allowed"
+        );
+
         Collection {
             client: self,
             name: collection_name,
@@ -135,11 +176,15 @@ pub struct RecordList<T> {
     pub items: Vec<T>,
 }
 
-#[derive(Deserialize)]
-struct ErrorResponse {
-    code: u16,
-    message: String,
-    data: Option<serde_json::Value>,
+/// Response structure for API errors from `PocketBase`.
+#[derive(Deserialize, Debug)]
+pub(crate) struct ErrorResponse {
+    /// HTTP status code
+    pub code: u16,
+    /// Error message from the server
+    pub message: String,
+    /// Additional error data, if any
+    pub data: Option<serde_json::Value>,
 }
 
 /// A `PocketBase` Client. You can use it to send requests to the `PocketBase` instance.
@@ -174,11 +219,28 @@ struct ErrorResponse {
 ///
 ///     Ok(())
 /// }
-#[derive(Clone, Debug)]
+/// A `PocketBase` Client. You can use it to send requests to the `PocketBase` instance.
+///
+/// The `Debug` implementation for this struct redacts sensitive authentication data
+/// to prevent accidental exposure in logs.
+#[derive(Clone)]
 pub struct PocketBase {
     pub(crate) base_url: String,
     pub(crate) auth_store: Option<AuthStore>,
     pub(crate) reqwest_client: reqwest::Client,
+}
+
+impl std::fmt::Debug for PocketBase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PocketBase")
+            .field("base_url", &self.base_url)
+            .field(
+                "auth_store",
+                &self.auth_store.as_ref().map(|_| "***REDACTED***"),
+            )
+            .field("reqwest_client", &"Client")
+            .finish()
+    }
 }
 
 impl PocketBase {
@@ -198,12 +260,70 @@ impl PocketBase {
     /// let client = PocketBase::new("http://localhost:8090");
     /// // Use the client for further operations like authentication or fetching records
     /// ```
+    /// # Panics
+    ///
+    /// This method will panic if the provided `base_url` is not a valid URL.
     #[must_use]
     pub fn new(base_url: &str) -> Self {
+        // Validate URL format
+        let trimmed_url = base_url.trim_end_matches('/');
+        assert!(
+            trimmed_url.starts_with("http://") || trimmed_url.starts_with("https://"),
+            "Invalid base_url: must start with http:// or https://"
+        );
+
+        // Create client with sensible defaults
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .build()
+            .expect("Failed to create HTTP client");
+
         Self {
-            base_url: base_url.to_string(),
+            base_url: trimmed_url.to_string(),
             auth_store: None,
-            reqwest_client: reqwest::Client::new(),
+            reqwest_client: client,
+        }
+    }
+
+    /// Creates a new `PocketBase` client with a custom reqwest client.
+    ///
+    /// This method allows you to provide your own configured `reqwest::Client` instance,
+    /// which is useful when you need custom timeout settings, proxy configuration,
+    /// or other HTTP client customizations.
+    ///
+    /// # Arguments
+    /// * `base_url` - A string slice representing the base URL of the `PocketBase` instance
+    /// * `client` - A pre-configured `reqwest::Client` instance
+    ///
+    /// # Example
+    /// ```rust
+    /// use std::time::Duration;
+    ///
+    /// let client = reqwest::Client::builder()
+    ///     .timeout(Duration::from_secs(60))
+    ///     .build()
+    ///     .expect("Failed to build client");
+    ///
+    /// let pb = PocketBase::new_with_client("http://localhost:8090", client);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if the provided `base_url` is not a valid URL.
+    #[must_use]
+    pub fn new_with_client(base_url: &str, client: reqwest::Client) -> Self {
+        // Validate URL format
+        let trimmed_url = base_url.trim_end_matches('/');
+        assert!(
+            trimmed_url.starts_with("http://") || trimmed_url.starts_with("https://"),
+            "Invalid base_url: must start with http:// or https://"
+        );
+
+        Self {
+            base_url: trimmed_url.to_string(),
+            auth_store: None,
+            reqwest_client: client,
         }
     }
 

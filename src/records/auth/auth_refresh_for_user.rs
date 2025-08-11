@@ -5,9 +5,9 @@ impl<'a> Collection<'a> {
     /// Refreshes the auth token for a specific external user.
     ///
     /// This is useful when managing tokens for users other than the currently
-    /// authenticated user *(e.g., as a superuser)*.   
+    /// authenticated user *(e.g., as a superuser)*.
     /// On success, this function returns an `AuthStore` instance with the new token and updated
-    /// user information for the specified user.   
+    /// user information for the specified user.
     ///
     ///
     /// # Arguments
