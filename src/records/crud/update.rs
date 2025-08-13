@@ -25,7 +25,7 @@ pub enum UpdateError {
     /// The requested resource wasn't found. Missing collection context.
     #[error("The requested resource wasn't found. Missing collection context.")]
     NotFound,
-    /// Communication with the `PocketBase` API failed.   
+    /// Communication with the `PocketBase` API failed.
     ///
     /// This could be caused by an internet outage, an error in the link given to the `PocketBase` SDK
     /// and similar errors.
@@ -34,7 +34,7 @@ pub enum UpdateError {
     /// The response could not be parsed into the expected data structure.
     #[error("Could not parse response into the expected data structure. It usually means that there is a missmatch between the provided Generic Type Parameter and your Collection definition: {0}")]
     ParseError(String),
-    /// The response from the `PocketBase` instance API was unexpected.   
+    /// The response from the `PocketBase` instance API was unexpected.
     /// If you think its an error, please [open an issue on GitHub]("https://github.com/fromhorizons/pocketbase-rs/issues").
     #[error("An unhandled status code was returned by the PocketBase API: {0}")]
     UnexpectedResponse(String),

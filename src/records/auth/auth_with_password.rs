@@ -70,6 +70,11 @@ impl From<reqwest::Error> for AuthenticationError {
 impl Collection<'_> {
     /// Authenticates a Client user with the `PocketBase` server using their email and password.
     ///
+    /// This method performs password-based authentication against the specified collection.
+    /// Upon successful authentication, the client's internal auth store is updated with the
+    /// authentication token and user information, which will be automatically included in
+    /// subsequent API requests.
+    ///
     /// # Parameters
     ///
     /// * `identity`: The **username** or **email** of the Client record to authenticate.
@@ -77,32 +82,48 @@ impl Collection<'_> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing a `PocketBase` instance on success, which includes the authentication token for
-    /// further authorized requests. On failure, it returns an `AuthenticationError`.
+    /// Returns `Ok(AuthStore)` containing:
+    /// - The authentication token for API requests
+    /// - The authenticated user's record information
+    ///
+    /// Returns `Err(AuthenticationError)` for various failure cases.
     ///
     /// # Errors
     ///
     /// This function will return an `AuthenticationError` if:
     ///
-    /// - There is an HTTP-related error when making the request.
-    /// - The response from the `PocketBase` instance cannot be parsed correctly.
+    /// - `InvalidCredentials`: The provided email/password combination is incorrect
+    /// - `EmptyField`: Either the identity or password field is empty
+    /// - `IdentityMustBeEmail`: The identity field doesn't contain a valid email format
+    /// - `HttpError`: Network or connection issues occurred
+    /// - `UnexpectedResponse`: The server response was not in the expected format
+    /// - `MissingCollection`: No collection name was provided
     ///
     /// # Example
     ///
     /// ```rust,ignore
-    /// use std::{error::Error, fs};
-    ///
+    /// use std::error::Error;
     /// use pocketbase_rs::PocketBase;
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn Error>> {
     ///     let mut pb = PocketBase::new("http://localhost:8090");
     ///
+    ///     // Authenticate with a users collection
     ///     let auth_data = pb.collection("users")
     ///         .auth_with_password("test@domain.com", "secure-password")
     ///         .await?;
     ///
-    ///     println!("Auth Data: {auth_data:?}");
+    ///     println!("Authenticated as: {}", auth_data.record.email);
+    ///     println!("Token: {}", auth_data.token);
+    ///
+    ///     // The token is now automatically included in future requests
+    ///     let profile = pb.collection("profiles")
+    ///         .get_one::<Profile>("some_id")
+    ///         .call()
+    ///         .await?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     pub async fn auth_with_password(
@@ -129,7 +150,9 @@ impl Collection<'_> {
             self.client.update_auth_store(auth_store.clone());
 
             return Ok(auth_store);
-        } else if response.status() == reqwest::StatusCode::BAD_REQUEST {
+        }
+
+        if response.status() == reqwest::StatusCode::BAD_REQUEST {
             let error_response: ErrorResponse =
                 response.json().await.unwrap_or_else(|_| ErrorResponse {
                     code: 400,
@@ -188,9 +211,10 @@ impl Collection<'_> {
                         })
                     }
                     None => {
+                        let password_error = data.get("password").is_some();
                         return Err(AuthenticationError::EmptyField {
                             identity: false,
-                            password: data.get("password").is_some(),
+                            password: password_error,
                         });
                     }
                     _ => {}

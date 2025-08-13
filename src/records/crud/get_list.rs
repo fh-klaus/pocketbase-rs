@@ -87,7 +87,7 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
         self
     }
 
-    /// Specify the max returned records per page (default to 30).   
+    /// Specify the max returned records per page (default to 30).
     ///
     /// If a value greater than **500** is provided, `PocketBase` will
     /// automatically limit it to **500**.
@@ -97,7 +97,7 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
     }
 
     /// Specify the records order attribute(s).
-    /// Add `-`/`+` (default) in front of the attribute for DESC / ASC order.   
+    /// Add `-`/`+` (default) in front of the attribute for DESC / ASC order.
     ///
     /// Example:
     /// ```toml
@@ -108,21 +108,21 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
         self
     }
 
-    /// Filter the returned records.   
+    /// Filter the returned records.
     ///
-    /// Example:   
+    /// Example:
     /// ```toml
     /// ?filter=(id="abc" && created>'1970-01-01')
     /// ```
     ///
-    /// The syntax basically follows the format   
+    /// The syntax basically follows the format
     /// `OPERAND OPERATOR OPERAND`, where:
     /// - `OPERAND` - could be any of the above field literal, string (single or double quoted), number, null, true, false
     /// - `OPERATOR` - is one of:
     ///    - `=`     Equal
     ///    - `!=`   NOT equal
     ///    - `>`     Greater than
-    ///    - `>=`   Greather than or equal
+    ///    - `>=`   Greater than or equal
     ///    - `<`     Less than
     ///    - `<=`   Less than or equal
     ///    - `~`     Like/Contains (if not specified auto wraps the right string OPERAND in a "%" for wildcard match)
@@ -142,24 +142,24 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
         self
     }
 
-    /// Auto expand record relations.   
+    /// Auto expand record relations.
     ///
     /// Example:
     /// ```toml
     /// ?expand=relField1,relField2.subRelField
     /// ```
     ///
-    /// Supports up to 6-levels depth nested relations expansion.   
-    /// The expanded relations will be appended to each individual record under the `expand` property (eg. `"expand": {"relField1": {...}, ...}`).   
+    /// Supports up to 6-levels depth nested relations expansion.
+    /// The expanded relations will be appended to each individual record under the `expand` property (eg. `"expand": {"relField1": {...}, ...}`).
     /// Only the relations to which the request user has permissions to **view** will be expanded.
     pub const fn expand(mut self, expand: &'a str) -> Self {
         self.expand = Some(expand);
         self
     }
 
-    /// If it is set the total counts query will be skipped and the response fields `totalItems` and `totalPages` will have `-1` value.   
-    /// This could drastically speed up the search queries when the total counters are not needed or cursor speed pagination is used.   
-    /// For optimization purposes, it is set by default for the `getFirstListItem()` and `getFullList()` SDKs methods.   
+    /// If it is set the total counts query will be skipped and the response fields `totalItems` and `totalPages` will have `-1` value.
+    /// This could drastically speed up the search queries when the total counters are not needed or cursor speed pagination is used.
+    /// For optimization purposes, it is set by default for the `getFirstListItem()` and `getFullList()` SDKs methods.
     pub const fn skip_total(mut self, skip_total: bool) -> Self {
         self.skip_total = skip_total;
         self
@@ -210,13 +210,14 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetListBuilder<
                 .map_err(|err| match err.status() {
                     Some(reqwest::StatusCode::FORBIDDEN) => RequestError::Forbidden,
                     Some(reqwest::StatusCode::NOT_FOUND) => RequestError::NotFound,
+                    Some(reqwest::StatusCode::TOO_MANY_REQUESTS) => RequestError::TooManyRequests,
                     _ => RequestError::Unhandled,
                 })?,
             Err(error) => {
-                println!("here");
                 return Err(match error.status() {
                     Some(reqwest::StatusCode::FORBIDDEN) => RequestError::Forbidden,
                     Some(reqwest::StatusCode::NOT_FOUND) => RequestError::NotFound,
+                    Some(reqwest::StatusCode::TOO_MANY_REQUESTS) => RequestError::TooManyRequests,
                     _ => RequestError::Unhandled,
                 });
             }

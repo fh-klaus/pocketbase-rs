@@ -65,15 +65,15 @@ impl<'a> Collection<'a> {
 }
 
 impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetOneBuilder<'a, T> {
-    /// Auto expand record relations.   
+    /// Auto expand record relations.
     ///
     /// Example:
     /// ```toml
     /// ?expand=relField1,relField2.subRelField
     /// ```
     ///
-    /// Supports up to 6-levels depth nested relations expansion.   
-    /// The expanded relations will be appended to each individual record under the `expand` property (eg. `"expand": {"relField1": {...}, ...}`).   
+    /// Supports up to 6-levels depth nested relations expansion.
+    /// The expanded relations will be appended to each individual record under the `expand` property (eg. `"expand": {"relField1": {...}, ...}`).
     /// Only the relations to which the request user has permissions to **view** will be expanded.
     pub const fn expand(mut self, expand: &'a str) -> Self {
         self.expand = Some(expand);
@@ -108,13 +108,14 @@ impl<'a, T: Default + DeserializeOwned + Clone + Send> CollectionGetOneBuilder<'
                 .map_err(|err| match err.status() {
                     Some(reqwest::StatusCode::FORBIDDEN) => RequestError::Forbidden,
                     Some(reqwest::StatusCode::NOT_FOUND) => RequestError::NotFound,
+                    Some(reqwest::StatusCode::TOO_MANY_REQUESTS) => RequestError::TooManyRequests,
                     _ => RequestError::Unhandled,
                 })?,
             Err(error) => {
-                println!("here");
                 return Err(match error.status() {
                     Some(reqwest::StatusCode::FORBIDDEN) => RequestError::Forbidden,
                     Some(reqwest::StatusCode::NOT_FOUND) => RequestError::NotFound,
+                    Some(reqwest::StatusCode::TOO_MANY_REQUESTS) => RequestError::TooManyRequests,
                     _ => RequestError::Unhandled,
                 });
             }
