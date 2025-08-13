@@ -1,6 +1,14 @@
 # pocketbase-rs
 
-A *still in development* Rust SDK to interact with the [PocketBase Web API](https://pocketbase.io/).
+A *still in development* Rust SDK to interact with the [PocketBase Web API](https://pocketbase.io/). 
+
+## Intended use
+
+**IT IS NOT A CLIENT SDK**. This wrapper was created for a site that does not use the PocketBase SDK client. A PocketBase instance runs in the back-end without internet access, users interact with a site, and it is the site that communicates with PocketBase for greater control.
+
+Yes, this is not the intended purpose of PocketBase, but PocketBase remains useful for quickly creating an interface around a database and a user account system that is easy and quick to set up.
+
+Translated with DeepL.com (free version)
 
 ## Note
 
